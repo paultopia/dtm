@@ -2,8 +2,16 @@
 
 (require '[clojure.string :as str])
 (require '[clojure.walk :as walk])
+(defn depunctuate 
+  "strip punctuation from string"
+  [string] 
+  (apply str (filter #(or (Character/isLetter %) (Character/isSpace %)) string)))
+(defn default-preprocess 
+  "sensible default preprocessing" 
+  [string]
+  (-> string depunctuate str/lower-case))
 (defn whitespace-split 
-  "split a vector of strings into vector of vectors of strings on whitespace" 
+  "split a vector of preprocessed strings into vector of vectors of strings on whitespace" 
   [preprocessed-docs] 
   (map #(str/split % #"\s") preprocessed-docs))
 (defn count-strings 
@@ -44,10 +52,20 @@
   "sequence of sequences --> vector of vectors"
   [seqofseq]
   (into [] (map #(into [] %) seqofseq)))
-(defn TD-matrix 
+(defn preprocessed-TD-matrix 
   "make term document matrix as vector of vectors from vector of preprocessed docs"
   [preprocessed-docs]
   (-> preprocessed-docs TD-map TD-seqs seqs-to-vecs))
+
+; this last function does not work; preprocessing composition is failing.
+(defn make-TD-matrix
+  "preprocess docs then make term document matrix out of them"
+  ([docs] 
+   (preprocessed-TD-matrix docs))
+  ([docs & [funcs]]
+   (let [preproc (comp funcs)]
+     -> docs preproc preprocessed-TD-matrix)))
+
 
 ; example/test
 
