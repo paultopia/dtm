@@ -1,4 +1,6 @@
 ; first draft of term document matrix and preprocessing.
+; usage: take a vector of documents (corpus), call (make-TD-matrix corpus preprocessing-functions)
+; where preprocessing-functions are as many as you want, depunctuate is available, as is default-preprocess
 
 (require '[clojure.string :as str])
 (require '[clojure.walk :as walk])
@@ -56,15 +58,13 @@
   "make term document matrix as vector of vectors from vector of preprocessed docs"
   [preprocessed-docs]
   (-> preprocessed-docs TD-map TD-seqs seqs-to-vecs))
-
-; this last function does not work; preprocessing composition is failing.
 (defn make-TD-matrix
   "preprocess docs then make term document matrix out of them"
   ([docs] 
    (preprocessed-TD-matrix docs))
-  ([docs & [funcs]]
-   (let [preproc (comp funcs)]
-     -> docs preproc preprocessed-TD-matrix)))
+  ([docs & funcs]
+   (let [preproc (apply comp funcs)]
+     (preprocessed-TD-matrix (map preproc docs)))))
 
 
 ; example/test
