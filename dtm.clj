@@ -1,6 +1,7 @@
-; first draft of document term matrix
+; first draft of document term matrix--well, actually term document matrix.
 
 (require '[clojure.string :as str])
+(require '[clojure.walk :as walk])
 (defn whitesplit 
   "split a vector of string into vector of vectors of strings on whitespace" 
   [docs] 
@@ -28,4 +29,29 @@
     (expandcounts 
       (-> stringvecs liststrings makezeroes) 
       (-> stringvecs stringcounts))))  
+(defn terdocmmap
+  "make a sorted document-term-map of vector of docs with keywords"
+  [docs]
+  (walk/keywordize-keys  ; this is mainly for later flexibility
+    (map #(into (sorted-map) %) (bigmap docs))))
+(defn tdseqs
+  "convert document-term-map into sequence of sequences"
+  [tdmap]
+  (cons 
+    (keys (first tdmap))
+    (map vals tdmap)))
+(defn nestvecify 
+  "sequence of sequences --> vector of vectors"
+  [seqofseq]
+  (into [] (map #(into [] %) seqofseq)))
+(defn termdocmatrix 
+  "make document term matrix as vector of vectors from vector of docs"
+  [docs]
+  (-> docs terdocmmap tdseqs nestvecify))
+
+; example/test
+
+(termdocmatrix ["this is a cat" "this is a dog" "woof and a meow" "woof woof woof meow meow words"])
+
+; produces [[:cat :is :this :words :dog :and :meow :woof :a] [1 1 1 0 0 0 0 0 1] [0 1 1 0 1 0 0 0 1] [0 0 0 0 0 1 1 1 1] [0 0 0 1 0 0 2 3 0]]
 
